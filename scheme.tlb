@@ -1,0 +1,92 @@
+bool_false$0 = Bool;
+bool_true$1 = Bool;
+
+nothing$0 {X:Type} = Maybe X;
+just$1 {X:Type} value:X = Maybe X;
+
+addr_none$00 = MsgAddressExt;
+addr_extern$01 len:(## 9) external_address:(bits len)
+             = MsgAddressExt;
+anycast_info$_ depth:(#<= 30) { depth >= 1 }
+   rewrite_pfx:(bits depth) = Anycast;
+addr_std$10 anycast:(Maybe Anycast)
+   workchain_id:int8 address:bits256  = MsgAddressInt;
+addr_var$11 anycast:(Maybe Anycast) addr_len:(## 9)
+   workchain_id:int32 address:(bits addr_len) = MsgAddressInt;
+_ _:MsgAddressInt = MsgAddress;
+_ _:MsgAddressExt = MsgAddress;
+
+var_uint$_ {n:#} len:(#< n) value:(uint (len * 8))
+         = VarUInteger n;
+nanograms$_ amount:(VarUInteger 16) = Grams;
+
+_ grams:Grams = Coins;
+
+// protocol
+
+long$0 = Direction;
+short$1 = Direction;
+
+position#_ size:int128 direction:Direction
+  margin:Coins open_notional:Coins
+  last_updated_cumulative_premium:int64
+  fee:uint32 discount:uint32 rebate:uint32
+  last_updated_timestamp:uint32 = PositionData;
+
+amm_state_log#_ quote_asset_reserve:Coins quote_asset_weight:Coins
+  base_asset_reserve:Coins
+  total_long_position_size:Coins total_short_position_size:Coins
+  open_interest_long:Coins open_interest_short:Coins = AmmStateLog;
+
+referral_params#_ referral_amount:Coins referral_addr:MsgAddress = NotificationReferralParams;
+executor_params#_ split_executor_reward:uint1 executor_amount:Coins executor_index:uint32 = NotificationExecutorParams;
+
+market_depth#_ spread:Coins market_depth_long:Coins market_depth_short:Coins coefficient:uint64 = MarketDepth;
+
+stop_loss_order$0000 expiration:uint32 direction:Direction amount:Coins trigger_price:Coins = Order;
+take_profit_order$0001 expiration:uint32 direction:Direction amount:Coins trigger_price:Coins = Order;
+stop_limit_order$0010 expiration:uint32 direction:Direction amount:Coins leverage:uint64
+  limit_price:Coins stop_price:Coins stop_trigger_price:Coins take_trigger_price:Coins = Order;
+market_order$0011 expiration:uint32 direction:Direction amount:Coins leverage:uint64
+  limit_price:Coins stop_price:Coins stop_trigger_price:Coins take_trigger_price:Coins = Order;
+
+// old version without pause, unpause and VPI:
+// update_msg#_ price:Coins spread:Coins timestamp:uint32 assetIndex:uint16 = UpdateMsg;
+update_msg#_ price:Coins spread:Coins timestamp:uint32 assetIndex:uint16 pause_at:uint32 unpause_at:uint32
+  vpi_spread:Coins vpi_market_depth_long:Coins vpi_market_depth_short:Coins vpi_coefficient:uint64 = UpdateMsg;
+
+empty$0 cont:(Maybe ^Signature) = Signature;
+fulled$1 signature:bits512 cont:(Maybe ^Signature) = Signature;
+
+without_settlement#00 update_msg:^UpdateMsg signatures:^Signature = SingleOraclePayload;
+with_settlement#01 update_msg:^UpdateMsg signatures:^Signature settlement_update_msg:^UpdateMsg
+  settlement_signatureS:^Signature = DoubleOraclePayload;
+// created price will always be without settlement price
+created_price#00 update_msg:^UpdateMsg signatures:^Signature = CreatedOraclePayload;
+
+single#00 update_msg:^UpdateMsg signatures:^Signature = OraclePayload;
+double#01 update_msg:^UpdateMsg signatures:^Signature settlement_update_msg:^UpdateMsg
+  settlement_signatureS:^Signature = OraclePayload;
+single_with_created#02 price_oracle_payload:^SingleOraclePayload created_oracle_payload:^CreatedOraclePayload = OraclePayload;
+double_with_created#03 price_oracle_payload:^DoubleOraclePayload created_oracle_payload:^CreatedOraclePayload = OraclePayload;
+
+
+// old version without settlement:
+// update_position#_ direction:Direction origin_op:uint32 oracle_price:Coins
+//   new_position_ref:^PositionData amm_state_log:^AmmStateLog = InternalMsgBody;
+update_position#60dfc677 direction:Direction origin_op:uint32 oracle_price:Coins
+  settlement_oracle_price:Coins new_position_ref:^PositionData amm_state_log:^AmmStateLog = InternalMsgBody;
+
+// old version without settlement:
+// complete_order#_ order_type:uint4 order_index:uint3 direction:Direction origin_op:uint32 oracle_price:Coins
+//   new_position_ref:^PositionData amm_state_log:^AmmStateLog
+complete_order#cf90d618 order_type:uint4 order_index:uint3 direction:Direction origin_op:uint32 oracle_price:Coins
+  settlement_oracle_price:Coins new_position_ref:^PositionData amm_state_log:^AmmStateLog
+  market_depth_log_ref:^MarketDepth = InternalMsgBody;
+
+trade_notification#3475fdd2 asset_id:uint16 free_amount:int64 locked_amount:int64 exchange_amount:int64
+  withdraw_locked_amount:uint64 fee_to_stakers:uint64 withdraw_amount:uint64 trader_addr:MsgAddressInt origin_addr:MsgAddressInt
+  referral_data:(Maybe ^NotificationReferralParams) executor_params:(Maybe ^NotificationExecutorParams) = InternalMsgBody;
+execute_order#de1ddbcc direction:Direction order_index:uint3
+  trader_addr:MsgAddressInt prev_addr:MsgAddressInt ref_addr:MsgAddress
+  executor_index:uint32 order:^Order position:^PositionData oracle_payload:^OraclePayload = InternalMsgBody;
