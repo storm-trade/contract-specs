@@ -41,7 +41,7 @@ amm_state_log#_ quote_asset_reserve:Coins quote_asset_weight:Coins
 referral_params#_ referral_amount:Coins referral_addr:MsgAddress = NotificationReferralParams;
 executor_params#_ split_executor_reward:uint1 executor_amount:Coins executor_index:uint32 = NotificationExecutorParams;
 
-market_depth#_ spread:Coins market_depth_long:Coins market_depth_short:Coins coefficient:uint64 = MarketDepth;
+market_depth#_ vpi_spread:Coins vpi_market_depth_long:Coins vpi_market_depth_short:Coins vpi_coefficient:uint64 = MarketDepth;
 
 stop_loss_order$0000 expiration:uint32 direction:Direction amount:Coins trigger_price:Coins = Order;
 take_profit_order$0001 expiration:uint32 direction:Direction amount:Coins trigger_price:Coins = Order;
