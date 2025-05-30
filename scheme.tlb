@@ -24,6 +24,9 @@ _ grams:Grams = Coins;
 
 // protocol
 
+nothing$1 {X:Type} = InvertedMaybe X;
+just$0 {X:Type} value:X = InvertedMaybe X;
+
 long$0 = Direction;
 short$1 = Direction;
 
@@ -55,8 +58,8 @@ market_order$0011 expiration:uint32 direction:Direction amount:Coins leverage:ui
 update_msg#_ price:Coins spread:Coins timestamp:uint32 assetIndex:uint16 pause_at:uint32 unpause_at:uint32
   vpi_spread:Coins vpi_market_depth_long:Coins vpi_market_depth_short:Coins vpi_coefficient:uint64 = UpdateMsg;
 
-empty$0 cont:(Maybe ^Signature) = Signature;
-fulled$1 signature:bits512 cont:(Maybe ^Signature) = Signature;
+empty$0 cont:(InvertedMaybe ^Signature) = Signature;
+fulled$1 signature:bits512 cont:(InvertedMaybe ^Signature) = Signature;
 
 without_settlement#00 update_msg:^UpdateMsg signatures:^Signature = SingleOraclePayload;
 with_settlement#01 update_msg:^UpdateMsg signatures:^Signature settlement_update_msg:^UpdateMsg
@@ -69,7 +72,6 @@ double#01 update_msg:^UpdateMsg signatures:^Signature settlement_update_msg:^Upd
   settlement_signatureS:^Signature = OraclePayload;
 single_with_created#02 price_oracle_payload:^SingleOraclePayload created_oracle_payload:^CreatedOraclePayload = OraclePayload;
 double_with_created#03 price_oracle_payload:^DoubleOraclePayload created_oracle_payload:^CreatedOraclePayload = OraclePayload;
-
 
 // old version without settlement:
 // update_position#_ direction:Direction origin_op:uint32 oracle_price:Coins
